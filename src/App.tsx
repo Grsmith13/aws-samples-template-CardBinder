@@ -2,37 +2,14 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { get } from "aws-amplify/api";
-import { AxiosError } from "axios";
+
 const client = generateClient<Schema>();
 
 function App() {
-  async function getItem() {
-    try {
-      const restOperation = get({
-        apiName: "myRestApi",
-        path: "items",
-      });
-      const response = await restOperation.response;
-      console.log("GET call succeeded: ", response);
-    } catch (err: any) {
-      if (err instanceof AxiosError) {
-        if (
-          err.response?.status === 400 &&
-          err.response?.data.code === "CATEGORY_ALREADY_EXIST"
-        ) {
-          console.log("Category exists");
-        }
-      } else {
-        console.log("Unexpected error", err);
-      }
-    }
-  }
   const { user, signOut } = useAuthenticator();
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
   useEffect(() => {
-    getItem();
     client.models.Todo.observeQuery().subscribe({
       next: (data) => setTodos([...data.items]),
     });
